@@ -20,7 +20,7 @@ import kotlin.io.path.pathString
 fun App() {
     var text by remember { mutableStateOf("") }
 
-    val compile = Compile("/Users/k22120kk/Desktop/classCode")
+    val compile = Compile("/Users/k22120kk/Desktop/classCode/")
 
     MaterialTheme {
         Column {
