@@ -99,5 +99,9 @@ class Compile (
         return files
     }
 
+    fun compile(path:Path){
+
+    }
+
 
 }
