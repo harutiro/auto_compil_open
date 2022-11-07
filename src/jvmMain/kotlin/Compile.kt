@@ -29,43 +29,49 @@ class Compile (
             var nEntries = 0
             var totalReads = 0L
             val buffer = ByteArray(unzipBufferSize)
-            while (f.nextEntry.also { zipEntry = it } != null) {
-                val entryPath = Paths.get(zipEntry!!.name).normalize()
-                if (entryPath.startsWith(Paths.get(".."))) {
-                    throw IllegalStateException("File is outside extraction target directory.")
-                }
-                if (nEntries++ >= unzipMaxEntries) {
-                    throw IllegalStateException("Too many files to unzip.")
-                }
 
-                val dst = destDirPath.resolve(entryPath)
-                if (zipEntry!!.isDirectory) {
-                    Files.createDirectories(dst)
-                } else {
-                    // System.err.println("inflating: $dst")
-                    Files.createDirectories(dst.parent)
-
-                    var totalFileReads = 0L
-                    var nReads: Int
-                    FileOutputStream(dst.toFile()).use { fos ->
-                        BufferedOutputStream(fos).use { out ->
-                            while (f.read(buffer, 0, buffer.size).also { nReads = it } != -1) {
-                                totalReads += nReads
-                                if (totalReads > unzipMaxTotalSize) {
-                                    throw IllegalStateException("Total file size being unzipped is too big.")
-                                }
-                                totalFileReads += nReads
-                                if (totalFileReads > unzipMaxFileSize) {
-                                    throw IllegalStateException("File being unzipped is too big.")
-                                }
-                                out.write(buffer, 0, nReads)
-                            }
-                            out.flush()
-                        }
+            try{
+                while (f.nextEntry.also { zipEntry = it } != null) {
+                    val entryPath = Paths.get(zipEntry!!.name).normalize()
+                    if (entryPath.startsWith(Paths.get(".."))) {
+                        throw IllegalStateException("File is outside extraction target directory.")
                     }
-                    f.closeEntry()
+                    if (nEntries++ >= unzipMaxEntries) {
+                        throw IllegalStateException("Too many files to unzip.")
+                    }
+
+                    val dst = destDirPath.resolve(entryPath)
+                    if (zipEntry!!.isDirectory) {
+                        Files.createDirectories(dst)
+                    } else {
+                        // System.err.println("inflating: $dst")
+                        Files.createDirectories(dst.parent)
+
+                        var totalFileReads = 0L
+                        var nReads: Int
+                        FileOutputStream(dst.toFile()).use { fos ->
+                            BufferedOutputStream(fos).use { out ->
+                                while (f.read(buffer, 0, buffer.size).also { nReads = it } != -1) {
+                                    totalReads += nReads
+                                    if (totalReads > unzipMaxTotalSize) {
+                                        throw IllegalStateException("Total file size being unzipped is too big.")
+                                    }
+                                    totalFileReads += nReads
+                                    if (totalFileReads > unzipMaxFileSize) {
+                                        throw IllegalStateException("File being unzipped is too big.")
+                                    }
+                                    out.write(buffer, 0, nReads)
+                                }
+                                out.flush()
+                            }
+                        }
+                        f.closeEntry()
+                    }
                 }
+            }catch (e: IOException) {
+                println(e)
             }
+
         }
     }
 
